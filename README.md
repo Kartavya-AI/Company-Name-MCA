@@ -15,9 +15,10 @@ An AI-powered company name availability checker that validates names against the
 
 ### Core Components
 1. **Streamlit App** (`app.py`): Web interface with interactive dashboard
-2. **CrewAI Framework** (`crew.py`): Multi-agent system for name processing
-3. **MCA Tool** (`custom_tool.py`): Finanvo API integration and validation logic
-4. **Main Script** (`main.py`): Command-line interface
+2. **FastAPI Service** (`api.py`): RESTful API with Gradio interface
+3. **CrewAI Framework** (`crew.py`): Multi-agent system for name processing
+4. **MCA Tool** (`custom_tool.py`): Finanvo API integration and validation logic
+5. **Main Script** (`main.py`): Command-line interface
 
 ### Agent System
 - **Name Researcher**: Analyzes original name availability
@@ -28,15 +29,22 @@ An AI-powered company name availability checker that validates names against the
 
 ### Prerequisites
 - Python 3.9+
-- Streamlit
-- CrewAI
+- Docker (for containerized deployment)
+- Google Cloud CLI (for GCP deployment)
 
-### Setup
+### Local Setup
 
 ```bash
 # Clone repository
 git clone https://github.com/Kartavya-AI/Company-Name-MCA.git
 cd Company-Name-MCA
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 
 # Set up configuration files
 # Create config/agents.yaml and config/tasks.yaml
@@ -47,6 +55,12 @@ cd Company-Name-MCA
 ```
 streamlit
 crewai
+crewai[tools]
+fastapi
+gunicorn
+uvicorn
+gradio
+python-dotenv
 pandas
 plotly
 requests
@@ -55,7 +69,135 @@ fuzzywuzzy
 pyyaml
 ```
 
+## Docker Deployment
+
+### Building the Docker Image
+
+The project includes a production-ready Dockerfile optimized for containerized deployment:
+
+```bash
+# Build the Docker image
+docker build -t mca-name-checker .
+
+# Run locally with Docker
+docker run -p 8080:8080 mca-name-checker
+```
+
+### Docker Configuration
+
+The Dockerfile includes:
+- Python 3.11 slim base image
+- Optimized pip installation with caching
+- Gunicorn with Uvicorn workers for production
+- Proper environment variables for Python optimization
+- Exposed port 8080 for cloud deployment
+
+### Environment Variables
+
+Create a `.env` file for local development:
+```bash
+# API Configuration
+FINANVO_API_KEY=your_api_key
+FINANVO_SECRET_KEY=your_secret_key
+
+# Application Settings
+PORT=8080
+WORKERS=2
+```
+
+## Google Cloud Platform Deployment
+
+### Prerequisites Setup
+
+```bash
+# Authenticate with Google Cloud
+gcloud auth login
+
+# List available projects
+gcloud projects list
+
+# Set your project
+gcloud config set project YOUR_PROJECT_ID
+
+# Enable required APIs
+gcloud services enable cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com
+```
+
+### Artifact Registry Setup
+
+```bash
+# Set deployment variables
+$REPO_NAME = "mca-name-checker"
+$REGION = "us-central1"  # or your preferred region
+
+# Create Artifact Registry repository
+gcloud artifacts repositories create $REPO_NAME `
+    --repository-format=docker `
+    --location=$REGION `
+    --description="MCA Company Name Checker Docker Repository"
+```
+
+### Build and Push Image
+
+```bash
+# Get project ID and create image tag
+$PROJECT_ID = $(gcloud config get-value project)
+$IMAGE_TAG = "$($REGION)-docker.pkg.dev/$($PROJECT_ID)/$($REPO_NAME)/mca-app:latest"
+
+# Build and push to Artifact Registry
+gcloud builds submit --tag $IMAGE_TAG
+```
+
+### Deploy to Cloud Run
+
+```bash
+# Set service name
+$SERVICE_NAME = "mca-name-checker"
+
+# Deploy to Cloud Run
+gcloud run deploy $SERVICE_NAME `
+    --image=$IMAGE_TAG `
+    --platform=managed `
+    --region=$REGION `
+    --allow-unauthenticated `
+    --port=8080 `
+    --memory=2Gi `
+    --cpu=2 `
+    --max-instances=10 `
+    --set-env-vars="PORT=8080"
+```
+
+### Advanced Cloud Run Configuration
+
+For production deployments, consider these additional settings:
+
+```bash
+# Deploy with advanced configuration
+gcloud run deploy $SERVICE_NAME `
+    --image=$IMAGE_TAG `
+    --platform=managed `
+    --region=$REGION `
+    --allow-unauthenticated `
+    --port=8080 `
+    --memory=2Gi `
+    --cpu=2 `
+    --min-instances=1 `
+    --max-instances=20 `
+    --concurrency=100 `
+    --timeout=300 `
+    --set-env-vars="PORT=8080,WORKERS=2" `
+    --set-secrets="FINANVO_API_KEY=finanvo-api-key:latest,FINANVO_SECRET_KEY=finanvo-secret:latest"
+```
+
+### Custom Domain Setup
+
+```bash
+# Map custom domain (optional)
+gcloud run domain-mappings create --service=$SERVICE_NAME --domain=your-domain.com --region=$REGION
+```
+
 ## Configuration
+
 ### Agent Configuration
 
 Create `config/agents.yaml`:
@@ -106,21 +248,33 @@ validate_name_availability:
 
 ## Usage
 
-### Web Interface
+### Web Interface (Streamlit)
 
 ```bash
+# Run Streamlit app locally
 streamlit run app.py
+
+# Access at http://localhost:8501
 ```
 
-Navigate to `http://localhost:8501` and:
+### API Interface (FastAPI + Gradio)
 
-1. Enter your desired company name
-2. Choose whether to generate alternatives
-3. Click "Check Name" to start analysis
-4. View results with scores and recommendations
-5. Export data or select approved names
+```bash
+# Run API server locally
+uvicorn api:app --host 0.0.0.0 --port 8080
 
-### Command Line
+# Access Gradio interface at http://localhost:8080
+# API docs at http://localhost:8080/docs
+```
+
+### Production Deployment
+
+```bash
+# Run with Gunicorn (production)
+gunicorn --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8080 api:app
+```
+
+### Command Line Interface
 
 ```bash
 python main.py "Your Company Name Pvt Ltd"
@@ -169,7 +323,6 @@ Uses fuzzy matching to identify:
 - Similar companies (>70% similarity)
 - Potential conflicts
 
-
 ## API Integration
 
 ### Finanvo API
@@ -211,6 +364,45 @@ If API fails, the system uses intelligent mocking:
 - Live status indicators
 - Instant feedback on selections
 
+## Deployment Monitoring
+
+### Cloud Run Monitoring
+
+```bash
+# View service details
+gcloud run services describe $SERVICE_NAME --region=$REGION
+
+# View logs
+gcloud logs read --filter="resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME" --limit=50
+
+# Set up monitoring
+gcloud run services update $SERVICE_NAME --region=$REGION --set-env-vars="ENABLE_MONITORING=true"
+```
+
+### Scaling Configuration
+
+The application automatically scales based on traffic:
+- **Min instances**: 1 (keeps service warm)
+- **Max instances**: 20 (handles high traffic)
+- **Concurrency**: 100 requests per instance
+- **Memory**: 2GB per instance
+- **CPU**: 2 vCPUs per instance
+
+## Troubleshooting
+
+### Common Deployment Issues
+
+1. **Build Failures**: Ensure all dependencies are in requirements.txt
+2. **Port Issues**: Cloud Run expects port 8080, verify Dockerfile EXPOSE
+3. **Memory Limits**: Increase memory allocation if processing large batches
+4. **API Timeouts**: Adjust timeout settings for external API calls
+
+### Local Development Issues
+
+1. **SQLite Compatibility**: The app uses pysqlite3 for Streamlit Cloud compatibility
+2. **Import Errors**: Ensure all config files are present in config/ directory
+3. **API Keys**: Set up proper environment variables for Finanvo API
+
 ## API Response Format
 
 ```json
@@ -228,3 +420,25 @@ If API fails, the system uses intelligent mocking:
   "recommendation": "✅ Name appears available and compliant"
 }
 ```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and test locally
+4. Test Docker build: `docker build -t test-image .`
+5. Submit pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+- **Issues**: GitHub Issues
+- **Documentation**: This README
+- **API Reference**: FastAPI docs at `/docs` endpoint
+
+---
+
+**Deployed on Google Cloud Run** | **Powered by CrewAI & Finanvo API** | **Real-time MCA Database Access**
