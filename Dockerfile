@@ -14,6 +14,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE $PORT
 
-CMD ["gunicorn", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker","--timeout", "24000", "--bind", "0.0.0.0:8000", "api:app"]
+CMD ["gunicorn", "--workers", "2", "--worker-class", "uvicorn.workers.UvicornWorker","--timeout", "24000", "--bind", "0.0.0.0:$PORT", "api:app"]
