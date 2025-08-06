@@ -1,6 +1,7 @@
 import gradio as gr
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.company_mca.crew import CompanyMcaCrew
+import os
 
 app = FastAPI(
     title="Company Name MCA API",
@@ -8,16 +9,23 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "company-mca-api"}
+
 def run_crew_analysis(company_name, user_preference):
     if not company_name or not user_preference:
         return "Error: Company name and user preference cannot be empty."
     
-    inputs = {
-        'company_name': company_name,
-        'user_preference': user_preference
-    }
-    result = CompanyMcaCrew().crew().kickoff(inputs=inputs)
-    return result
+    try:
+        inputs = {
+            'company_name': company_name,
+            'user_preference': user_preference
+        }
+        result = CompanyMcaCrew().crew().kickoff(inputs=inputs)
+        return str(result)
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 gradio_interface = gr.Interface(
     fn=run_crew_analysis,

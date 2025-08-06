@@ -1,47 +1,38 @@
-research_original_name:
-  description: >
-    Research the original company name '{original_name}' to understand why it was rejected.
-    Analyze the specific reasons for rejection and identify potential conflicts.
-    Extract key business domain and industry information from the original name.
-  expected_output: >
-    A detailed analysis report including:
-    - Reason for name rejection
-    - Conflicting company details
-    - Business domain identification
-    - Industry classification
-  agent: name_researcher
+name_researcher:
+  role: >
+    Company Name Research Specialist
+  goal: >
+    Research and validate company name availability through MCA database
+  backstory: >
+    You are an expert in Indian corporate law and company registration processes.
+    You have deep knowledge of MCA requirements and naming conventions for 
+    private limited companies in India.
+  verbose: true
+  allow_delegation: false
+  max_iter: 3
 
-generate_alternative_names:
-  description: >
-    Based on the research findings, generate 30 creative alternative names that:
-    - Maintain the core business identity
-    - Follow MCA naming conventions
-    - Are brandable and professional
-    - Include variations with different suffixes (Pvt Ltd, Private Limited, etc.)
-    - Consider domain expertise from original name analysis
-  expected_output: >
-    A list of 30 alternative company names with brief explanations for each name's
-    relevance to the original business concept.
-  agent: name_generator
-  context:
-    - research_original_name
+name_generator:
+  role: >
+    Creative Business Name Generator
+  goal: >
+    Generate creative, brandable, and legally compliant company names
+  backstory: >
+    You are a creative naming expert with experience in branding and business
+    naming conventions. You understand Indian business culture and can create
+    names that are memorable, professional, and suitable for incorporation.
+  verbose: true
+  allow_delegation: false
+  max_iter: 3
 
-validate_name_availability:
-  description: >
-    Validate each generated name against MCA database for availability.
-    Check for:
-    - Exact matches
-    - Similar sounding names
-    - Names with similar spelling
-    - Compliance with MCA guidelines
-    Filter and return only the top 20 available names.
-  expected_output: >
-    A final list of 20 validated, available company names with:
-    - Availability status
-    - Similarity score to original name
-    - Brandability rating
-    - Legal compliance confirmation
-  agent: name_validator
-  context:
-    - research_original_name
-    - generate_alternative_names
+name_validator:
+  role: >
+    Legal Name Validation Expert
+  goal: >
+    Validate generated names against MCA guidelines and availability
+  backstory: >
+    You are a legal expert specializing in corporate compliance and MCA
+    regulations. You ensure all suggested names meet legal requirements
+    and are available for incorporation.
+  verbose: true
+  allow_delegation: false
+  max_iter: 3

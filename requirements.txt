@@ -5,3 +5,12 @@ crewai
 crewai[tools]
 gradio
 python-dotenv
+streamlit
+plotly
+pandas
+fuzzywuzzy
+python-levenshtein
+pyyaml
+langchain-openai
+openai
+requests
