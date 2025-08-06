@@ -3,12 +3,14 @@ from crewai import Agent, Task, Crew, Process
 from crewai.project import CrewBase, agent, crew, task
 from src.company_mca.tools.custom_tool import mca_name_checker
 import yaml
+from langchain_openai import ChatOpenAI
 
 @CrewBase
 class CompanyMcaCrew():
     def __init__(self):
         self.agents_config = self._load_config('config/agents.yaml')
         self.tasks_config = self._load_config('config/tasks.yaml')
+        self.llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
     
     def _load_config(self, file_path: str) -> dict:
         with open(file_path, 'r') as file:
@@ -24,7 +26,8 @@ class CompanyMcaCrew():
             verbose=config['verbose'],
             allow_delegation=config['allow_delegation'],
             max_iter=config['max_iter'],
-            tools=[mca_name_checker]
+            tools=[mca_name_checker],
+            llm=self.llm
         )
     
     @agent
@@ -37,7 +40,8 @@ class CompanyMcaCrew():
             verbose=config['verbose'],
             allow_delegation=config['allow_delegation'],
             max_iter=config['max_iter'],
-            tools=[mca_name_checker]
+            tools=[mca_name_checker],
+            llm=self.llm
         )
     
     @agent
@@ -50,7 +54,8 @@ class CompanyMcaCrew():
             verbose=config['verbose'],
             allow_delegation=config['allow_delegation'],
             max_iter=config['max_iter'],
-            tools=[mca_name_checker]
+            tools=[mca_name_checker],
+            llm=self.llm
         )
     
     @task
@@ -84,8 +89,9 @@ class CompanyMcaCrew():
     
     @crew
     def crew(self) -> Crew:
-        """Create the crew"""
         return Crew(
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True
         )
