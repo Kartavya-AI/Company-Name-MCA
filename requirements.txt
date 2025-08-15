@@ -1,6 +1,6 @@
 fastapi
 gunicorn
-uvicorn
+uvicorn[standard]
 crewai
 crewai[tools]
 gradio
@@ -14,3 +14,6 @@ pyyaml
 langchain-openai
 openai
 requests
+pydantic
+pyYAML 
+python-multipart

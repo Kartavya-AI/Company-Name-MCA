@@ -1,38 +1,64 @@
-name_researcher:
-  role: >
-    Company Name Research Specialist
-  goal: >
-    Research and validate company name availability through MCA database
-  backstory: >
-    You are an expert in Indian corporate law and company registration processes.
-    You have deep knowledge of MCA requirements and naming conventions for 
-    private limited companies in India.
-  verbose: true
-  allow_delegation: false
-  max_iter: 3
+research_original_name:
+  description: >
+    Research the availability of the original company name "{original_name}" 
+    through the MCA database. Check for exact matches and similar existing 
+    companies that might cause conflicts during registration.
+    
+    Use the mca_name_checker tool to:
+    1. Validate the name format and compliance with MCA guidelines
+    2. Search for existing companies with similar names
+    3. Identify potential conflicts or issues
+    
+    Provide a detailed analysis of the name availability status.
+  expected_output: >
+    A comprehensive report containing:
+    - Original name availability status (available/not available)
+    - List of existing similar companies (if any)
+    - Validation results against MCA naming conventions
+    - Specific issues or conflicts identified
+    - Recommendation on name usability
 
-name_generator:
-  role: >
-    Creative Business Name Generator
-  goal: >
-    Generate creative, brandable, and legally compliant company names
-  backstory: >
-    You are a creative naming expert with experience in branding and business
-    naming conventions. You understand Indian business culture and can create
-    names that are memorable, professional, and suitable for incorporation.
-  verbose: true
-  allow_delegation: false
-  max_iter: 3
+generate_alternative_names:
+  description: >
+    Based on the research findings for "{original_name}" and user preference 
+    "{user_preference}", generate 5-8 creative and legally compliant 
+    alternative company names.
+    
+    Consider:
+    1. The industry and business nature implied by the original name
+    2. User preferences for naming style
+    3. MCA naming guidelines and restrictions
+    4. Brandability and memorability
+    5. Professional appearance
+    
+    For each suggested name, ensure it follows proper naming conventions
+    and includes appropriate legal suffixes (Pvt Ltd or Private Limited).
+  expected_output: >
+    A list of 5-8 alternative company names with:
+    - Each name properly formatted with legal suffix
+    - Brief explanation of the naming rationale
+    - Consideration of user preferences
+    - Compliance with MCA guidelines
+    - Creative and brandable options
 
-name_validator:
-  role: >
-    Legal Name Validation Expert
-  goal: >
-    Validate generated names against MCA guidelines and availability
-  backstory: >
-    You are a legal expert specializing in corporate compliance and MCA
-    regulations. You ensure all suggested names meet legal requirements
-    and are available for incorporation.
-  verbose: true
-  allow_delegation: false
-  max_iter: 3
+validate_name_availability:
+  description: >
+    Validate the availability of all generated alternative names using the 
+    MCA database. Check each suggested name for:
+    
+    1. Exact matches in existing company database
+    2. Similar names that might cause rejection
+    3. Compliance with MCA naming conventions
+    4. Overall registration feasibility
+    
+    Use the mca_name_checker tool for each suggested name and provide
+    a final ranking based on availability and compliance.
+  expected_output: >
+    A final comprehensive report containing:
+    - Original name analysis summary
+    - List of all suggested alternative names
+    - Availability status for each suggested name
+    - Ranking of names by registration probability
+    - Final recommendations with top 3 best options
+    - Detailed reasoning for recommendations
+    - Any additional considerations or warnings
